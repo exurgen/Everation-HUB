@@ -75,9 +75,9 @@ function AutoPickupFuelFunction()
             continue
         end
 
-        local folder = workspace:FindFirstChild("Droppeditems")
+        local folder = workspace:FindFirstChild("DroppedItems")
         if not folder then
-            print("[AutoPickupFuel] Droppeditems не найден")
+            print("[AutoPickupFuel] DroppedItems не найден")
             task.wait(1)
             continue
         end
