@@ -58,36 +58,38 @@ function ThemeSet(Options)
   Window.ModifyTheme(Options)
 end
 
+local dragRemote = nil
+
 function AutoPickupFuelFunction()
-    print("[AutoPickupFuel] Запуск функции")
+    print("[AutoPickupFuel] Запуск")
+
+    -- Ищем DragItem один раз
+    if not dragRemote then
+        dragRemote = FindGlobalDragItem()
+        if dragRemote then
+            print("[AutoPickupFuel] DragItem найден:", dragRemote:GetFullName())
+        else
+            print("[AutoPickupFuel] DragItem НЕ найден в Workspace")
+        end
+    end
 
     while getgenv().AutoPickupFuel do
         local player = game.Players.LocalPlayer
         local char = player.Character
-        if not char then
-            task.wait(0.3)
-            continue
-        end
+        if not char then task.wait(0.3) continue end
 
         local HRP = char:FindFirstChild("HumanoidRootPart")
-        if not HRP then
-            task.wait(0.3)
-            continue
-        end
+        if not HRP then task.wait(0.3) continue end
 
         local folder = workspace:FindFirstChild("DroppedItems")
-        if not folder then
-            print("[AutoPickupFuel] DroppedItems не найден")
-            task.wait(1)
-            continue
-        end
+        if not folder then task.wait(1) continue end
 
         local nearest = nil
         local nearestDist = 12
 
         for _, fuel in ipairs(folder:GetChildren()) do
             if fuel.Name == "Fuel" then
-                local union = fuel:FindFirstChild("Union")
+                local union = fuel:FindFirstChild("Union") or fuel:FindFirstChildWhichIsA("BasePart")
                 if union then
                     local dist = (union.Position - HRP.Position).Magnitude
                     if dist < nearestDist then
@@ -98,23 +100,11 @@ function AutoPickupFuelFunction()
             end
         end
 
-        if nearest then
-            print("[AutoPickupFuel] Подбираю Fuel:", nearest.Name)
-
-            local dragSystem = nearest:FindFirstChild("DragSystem")
-            if dragSystem then
-                local dragItem = dragSystem:FindFirstChild("DragItem")
-                if dragItem then
-                    dragItem:FireServer()
-                else
-                    print("[AutoPickupFuel] Нет DragItem")
-                end
-            else
-                print("[AutoPickupFuel] Нет DragSystem")
-            end
+        if nearest and dragRemote then
+            dragRemote:FireServer(nearest)
         end
 
-        task.wait(0.25) -- задержка чтобы не лагало
+        task.wait(0.25)
     end
 
     print("[AutoPickupFuel] Остановлено")
