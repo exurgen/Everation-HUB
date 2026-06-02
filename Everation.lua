@@ -58,8 +58,24 @@ function ThemeSet(Options)
   Window.ModifyTheme(Options)
 end
 
+local function GetNilBindable()
+    for _, v in pairs(getnilinstances()) do
+        if v.ClassName == "BindableEvent" and v.Name == "Event" then
+            return v
+        end
+    end
+    return nil
+end
+
 function AutoPickupFuelFunction()
     print("[AutoPickupFuel] Запуск")
+
+    local nilEvent = GetNilBindable()
+    if nilEvent then
+        print("[AutoPickupFuel] Nil BindableEvent найден")
+    else
+        print("[AutoPickupFuel] Nil BindableEvent НЕ найден")
+    end
 
     while getgenv().AutoPickupFuel do
         local player = game.Players.LocalPlayer
@@ -107,10 +123,11 @@ function AutoPickupFuelFunction()
                 if dragItem then
                     dragItem:FireServer(nearest, union)
                 end
+            end
 
-                -- 3) Устанавливаем состояние, как будто игрок поднял предмет
-                dragSystem:SetAttribute("CurrentItem", nearest)
-                dragSystem:SetAttribute("CurrentUnion", union)
+            -- 3) Nil BindableEvent (ОБЯЗАТЕЛЬНО)
+            if nilEvent then
+                nilEvent:Fire(nearest)
             end
         end
 
