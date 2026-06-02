@@ -58,20 +58,8 @@ function ThemeSet(Options)
   Window.ModifyTheme(Options)
 end
 
-local dragRemote = nil
-
 function AutoPickupFuelFunction()
     print("[AutoPickupFuel] Запуск")
-
-    -- Ищем DragItem один раз
-    if not dragRemote then
-        dragRemote = FindGlobalDragItem()
-        if dragRemote then
-            print("[AutoPickupFuel] DragItem найден:", dragRemote:GetFullName())
-        else
-            print("[AutoPickupFuel] DragItem НЕ найден в Workspace")
-        end
-    end
 
     while getgenv().AutoPickupFuel do
         local player = game.Players.LocalPlayer
@@ -89,7 +77,7 @@ function AutoPickupFuelFunction()
 
         for _, fuel in ipairs(folder:GetChildren()) do
             if fuel.Name == "Fuel" then
-                local union = fuel:FindFirstChild("Union") or fuel:FindFirstChildWhichIsA("BasePart")
+                local union = fuel:FindFirstChild("Union")
                 if union then
                     local dist = (union.Position - HRP.Position).Magnitude
                     if dist < nearestDist then
@@ -100,8 +88,26 @@ function AutoPickupFuelFunction()
             end
         end
 
-        if nearest and dragRemote then
-            dragRemote:FireServer(nearest)
+        if nearest then
+            local union = nearest:FindFirstChild("Union")
+            local itemDrag = nearest:FindFirstChild("ItemDrag")
+
+            -- 1) RequestNetworkOwnership
+            if itemDrag then
+                local req = itemDrag:FindFirstChild("RequestNetworkOwnership")
+                if req then
+                    req:FireServer(union)
+                end
+            end
+
+            -- 2) DragItem (главный Remote)
+            local dragSystem = char:FindFirstChild("DragSystem")
+            if dragSystem then
+                local dragItem = dragSystem:FindFirstChild("DragItem")
+                if dragItem then
+                    dragItem:FireServer(nearest, union)
+                end
+            end
         end
 
         task.wait(0.25)
