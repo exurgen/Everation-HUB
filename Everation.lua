@@ -88,34 +88,38 @@ function AutoPickupFuelFunction()
         print("[AutoPickupFuel] Персонаж и HRP найдены")
 
         local nearest = nil
-        local nearestDist = 12 -- радиус подбора
+        local nearestDist = 20 -- чуть увеличим радиус для теста
 
-        for _, fuel in ipairs(workspace:GetChildren()) do
-            if fuel.Name == "Fuel" then
-                print("[AutoPickupFuel] Найден объект Fuel:", fuel)
+        -- ВАЖНО: теперь GetDescendants, а не GetChildren
+        for _, obj in ipairs(workspace:GetDescendants()) do
+            if obj.Name == "Fuel" then
+                print("[AutoPickupFuel] Найден объект с именем Fuel:", obj:GetFullName())
 
-                local union = fuel:FindFirstChild("Union")
-                if union then
+                -- пробуем найти Union рядом
+                local fuel = obj
+                local union = fuel:FindFirstChild("Union") or fuel:FindFirstChildWhichIsA("BasePart")
+
+                if union and union:IsA("BasePart") then
                     local dist = (union.Position - HRP.Position).Magnitude
                     print("[AutoPickupFuel] Dist до Fuel =", dist)
 
                     if dist < nearestDist then
                         nearestDist = dist
                         nearest = fuel
-                        print("[AutoPickupFuel] Новый ближайший Fuel:", fuel, "дистанция:", dist)
+                        print("[AutoPickupFuel] Новый ближайший Fuel:", fuel:GetFullName(), "дистанция:", dist)
                     end
                 else
-                    print("[AutoPickupFuel] У Fuel нет Union")
+                    print("[AutoPickupFuel] У Fuel нет Union/BasePart, fuel =", fuel:GetFullName())
                 end
             end
         end
 
         if nearest then
-            print("[AutoPickupFuel] Итоговый ближайший Fuel:", nearest)
+            print("[AutoPickupFuel] Итоговый ближайший Fuel:", nearest:GetFullName())
 
-            local dragSystem = nearest:FindFirstChild("DragSystem")
+            local dragSystem = nearest:FindFirstChild("DragSystem") or nearest:FindFirstChild("DragSystem", true)
             if dragSystem then
-                print("[AutoPickupFuel] Найден DragSystem:", dragSystem)
+                print("[AutoPickupFuel] Найден DragSystem:", dragSystem:GetFullName())
 
                 local dragItem = dragSystem:FindFirstChild("DragItem")
                 if dragItem then
