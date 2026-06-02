@@ -59,86 +59,65 @@ function ThemeSet(Options)
 end
 
 function AutoPickupFuelFunction()
-    print("[AutoPickupFuel] Функция запущена")
+    print("[AutoPickupFuel] Запуск функции")
 
     while getgenv().AutoPickupFuel do
-        print("[AutoPickupFuel] Цикл тикает, флаг =", getgenv().AutoPickupFuel)
-
         local player = game.Players.LocalPlayer
-        if not player then
-            print("[AutoPickupFuel] Нет LocalPlayer")
-            task.wait(0.2)
+        local char = player.Character
+        if not char then
+            task.wait(0.3)
             continue
         end
 
-        local Character = player.Character
-        if not Character then
-            print("[AutoPickupFuel] Нет Character")
-            task.wait(0.2)
-            continue
-        end
-
-        local HRP = Character:FindFirstChild("HumanoidRootPart")
+        local HRP = char:FindFirstChild("HumanoidRootPart")
         if not HRP then
-            print("[AutoPickupFuel] Нет HumanoidRootPart")
-            task.wait(0.2)
+            task.wait(0.3)
             continue
         end
 
-        print("[AutoPickupFuel] Персонаж и HRP найдены")
+        local folder = workspace:FindFirstChild("Droppeditems")
+        if not folder then
+            print("[AutoPickupFuel] Droppeditems не найден")
+            task.wait(1)
+            continue
+        end
 
         local nearest = nil
-        local nearestDist = 20 -- чуть увеличим радиус для теста
+        local nearestDist = 12
 
-        -- ВАЖНО: теперь GetDescendants, а не GetChildren
-        for _, obj in ipairs(workspace:GetDescendants()) do
-            if obj.Name == "Fuel" then
-                print("[AutoPickupFuel] Найден объект с именем Fuel:", obj:GetFullName())
-
-                -- пробуем найти Union рядом
-                local fuel = obj
-                local union = fuel:FindFirstChild("Union") or fuel:FindFirstChildWhichIsA("BasePart")
-
-                if union and union:IsA("BasePart") then
+        for _, fuel in ipairs(folder:GetChildren()) do
+            if fuel.Name == "Fuel" then
+                local union = fuel:FindFirstChild("Union")
+                if union then
                     local dist = (union.Position - HRP.Position).Magnitude
-                    print("[AutoPickupFuel] Dist до Fuel =", dist)
-
                     if dist < nearestDist then
                         nearestDist = dist
                         nearest = fuel
-                        print("[AutoPickupFuel] Новый ближайший Fuel:", fuel:GetFullName(), "дистанция:", dist)
                     end
-                else
-                    print("[AutoPickupFuel] У Fuel нет Union/BasePart, fuel =", fuel:GetFullName())
                 end
             end
         end
 
         if nearest then
-            print("[AutoPickupFuel] Итоговый ближайший Fuel:", nearest:GetFullName())
+            print("[AutoPickupFuel] Подбираю Fuel:", nearest.Name)
 
-            local dragSystem = nearest:FindFirstChild("DragSystem") or nearest:FindFirstChild("DragSystem", true)
+            local dragSystem = nearest:FindFirstChild("DragSystem")
             if dragSystem then
-                print("[AutoPickupFuel] Найден DragSystem:", dragSystem:GetFullName())
-
                 local dragItem = dragSystem:FindFirstChild("DragItem")
                 if dragItem then
-                    print("[AutoPickupFuel] Найден DragItem, вызываю FireServer")
                     dragItem:FireServer()
                 else
-                    print("[AutoPickupFuel] НЕТ DragItem внутри DragSystem")
+                    print("[AutoPickupFuel] Нет DragItem")
                 end
             else
-                print("[AutoPickupFuel] НЕТ DragSystem внутри Fuel")
+                print("[AutoPickupFuel] Нет DragSystem")
             end
-        else
-            print("[AutoPickupFuel] В радиусе нет подходящего Fuel")
         end
 
-        task.wait(0.2)
+        task.wait(0.25) -- задержка чтобы не лагало
     end
 
-    print("[AutoPickupFuel] Цикл завершён, флаг выключен")
+    print("[AutoPickupFuel] Остановлено")
 end
 
 -- Tabs
