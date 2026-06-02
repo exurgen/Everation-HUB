@@ -59,37 +59,82 @@ function ThemeSet(Options)
 end
 
 function AutoPickupFuelFunction()
+    print("[AutoPickupFuel] Функция запущена")
+
     while getgenv().AutoPickupFuel do
-        local Character = game.Players.LocalPlayer.Character
-        if Character and Character:FindFirstChild("HumanoidRootPart") then
-            local HRP = Character.HumanoidRootPart
+        print("[AutoPickupFuel] Цикл тикает, флаг =", getgenv().AutoPickupFuel)
 
-            local nearest = nil
-            local nearestDist = 12 -- радиус подбора
+        local player = game.Players.LocalPlayer
+        if not player then
+            print("[AutoPickupFuel] Нет LocalPlayer")
+            task.wait(0.2)
+            continue
+        end
 
-            for _, fuel in ipairs(workspace:GetChildren()) do
-                if fuel.Name == "Fuel" then
-                    local union = fuel:FindFirstChild("Union")
-                    if union then
-                        local dist = (union.Position - HRP.Position).Magnitude
-                        if dist < nearestDist then
-                            nearestDist = dist
-                            nearest = fuel
-                        end
+        local Character = player.Character
+        if not Character then
+            print("[AutoPickupFuel] Нет Character")
+            task.wait(0.2)
+            continue
+        end
+
+        local HRP = Character:FindFirstChild("HumanoidRootPart")
+        if not HRP then
+            print("[AutoPickupFuel] Нет HumanoidRootPart")
+            task.wait(0.2)
+            continue
+        end
+
+        print("[AutoPickupFuel] Персонаж и HRP найдены")
+
+        local nearest = nil
+        local nearestDist = 12 -- радиус подбора
+
+        for _, fuel in ipairs(workspace:GetChildren()) do
+            if fuel.Name == "Fuel" then
+                print("[AutoPickupFuel] Найден объект Fuel:", fuel)
+
+                local union = fuel:FindFirstChild("Union")
+                if union then
+                    local dist = (union.Position - HRP.Position).Magnitude
+                    print("[AutoPickupFuel] Dist до Fuel =", dist)
+
+                    if dist < nearestDist then
+                        nearestDist = dist
+                        nearest = fuel
+                        print("[AutoPickupFuel] Новый ближайший Fuel:", fuel, "дистанция:", dist)
                     end
-                end
-            end
-
-            if nearest then
-                local dragSystem = nearest:FindFirstChild("DragSystem")
-                if dragSystem and dragSystem:FindFirstChild("DragItem") then
-                    dragSystem.DragItem:FireServer()
+                else
+                    print("[AutoPickupFuel] У Fuel нет Union")
                 end
             end
         end
 
-        task.wait(0.1)
+        if nearest then
+            print("[AutoPickupFuel] Итоговый ближайший Fuel:", nearest)
+
+            local dragSystem = nearest:FindFirstChild("DragSystem")
+            if dragSystem then
+                print("[AutoPickupFuel] Найден DragSystem:", dragSystem)
+
+                local dragItem = dragSystem:FindFirstChild("DragItem")
+                if dragItem then
+                    print("[AutoPickupFuel] Найден DragItem, вызываю FireServer")
+                    dragItem:FireServer()
+                else
+                    print("[AutoPickupFuel] НЕТ DragItem внутри DragSystem")
+                end
+            else
+                print("[AutoPickupFuel] НЕТ DragSystem внутри Fuel")
+            end
+        else
+            print("[AutoPickupFuel] В радиусе нет подходящего Fuel")
+        end
+
+        task.wait(0.2)
     end
+
+    print("[AutoPickupFuel] Цикл завершён, флаг выключен")
 end
 
 -- Tabs
@@ -117,7 +162,10 @@ local AutoPickupFuelToggle = AutoThingsTab:CreateToggle({
     Flag = "AutoPickupFuelToggle",
     Callback = function(Value)
         getgenv().AutoPickupFuel = Value
-        AutoPickupFuelFunction()
+        print("[AutoPickupFuel] Toggle изменён, значение =", Value)
+        if Value then
+            AutoPickupFuelFunction()
+        end
     end,
 })
 
