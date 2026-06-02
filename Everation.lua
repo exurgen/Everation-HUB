@@ -58,6 +58,40 @@ function ThemeSet(Options)
   Window.ModifyTheme(Options)
 end
 
+function AutoPickupFuelFunction()
+    while getgenv().AutoPickupFuel do
+        local Character = game.Players.LocalPlayer.Character
+        if Character and Character:FindFirstChild("HumanoidRootPart") then
+            local HRP = Character.HumanoidRootPart
+
+            local nearest = nil
+            local nearestDist = 12 -- радиус подбора
+
+            for _, fuel in ipairs(workspace:GetChildren()) do
+                if fuel.Name == "Fuel" then
+                    local union = fuel:FindFirstChild("Union")
+                    if union then
+                        local dist = (union.Position - HRP.Position).Magnitude
+                        if dist < nearestDist then
+                            nearestDist = dist
+                            nearest = fuel
+                        end
+                    end
+                end
+            end
+
+            if nearest then
+                local dragSystem = nearest:FindFirstChild("DragSystem")
+                if dragSystem and dragSystem:FindFirstChild("DragItem") then
+                    dragSystem.DragItem:FireServer()
+                end
+            end
+        end
+
+        task.wait(0.1)
+    end
+end
+
 -- Tabs
 local AutoThingsTab = Window:CreateTab("Auto Things", 4483362458)
 local SettingsTab = Window:CreateTab("Settings", 4483362458)
@@ -75,6 +109,16 @@ local AutoSellToggle = AutoThingsTab:CreateToggle({
       getgenv().AutoSellValue = Value
       AutoSellFunction()
    end,
+})
+
+local AutoPickupFuelToggle = AutoThingsTab:CreateToggle({
+    Name = "Auto Pickup Fuel",
+    CurrentValue = false,
+    Flag = "AutoPickupFuelToggle",
+    Callback = function(Value)
+        getgenv().AutoPickupFuel = Value
+        AutoPickupFuelFunction()
+    end,
 })
 
 -- Dropdowns
