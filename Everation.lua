@@ -100,13 +100,17 @@ function AutoPickupFuelFunction()
                 end
             end
 
-            -- 2) DragItem (главный Remote)
+            -- 2) DragItem Remote
             local dragSystem = char:FindFirstChild("DragSystem")
             if dragSystem then
                 local dragItem = dragSystem:FindFirstChild("DragItem")
                 if dragItem then
                     dragItem:FireServer(nearest, union)
                 end
+
+                -- 3) Устанавливаем состояние, как будто игрок поднял предмет
+                dragSystem:SetAttribute("CurrentItem", nearest)
+                dragSystem:SetAttribute("CurrentUnion", union)
             end
         end
 
